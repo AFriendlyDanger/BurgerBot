@@ -2,7 +2,7 @@
   "name": "burgerbot",
   "version": "1.0.0",
   "description": "Posts burger",
-  "main": "index.js",
+  "main": "bot.js",
   "scripts": {
     "start": "node bot.js"
   },
@@ -12,5 +12,8 @@
     "discord.js": "^12.5.3",
     "dotenv": "^10.0.0",
     "node-fetch": "^2.6.1"
+  },
+  "engines": {
+    "node": "14.x"
   }
 }
