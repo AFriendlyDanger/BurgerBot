@@ -6,20 +6,20 @@ let burgerRE = /(\s|^)!burg(e|o)r(\s|$)/i
 let mcdonRE = /(\s|^)!(m|w)cdonald('*s|s*)(\s|$)/i
 let bkRE = /(\s|^)!burger_*king(\s|$)/i
 let wendyRE = /(\s|^)!wendy'*s(\s|$)/i
-let burgerTag = 'burger'
-let mcTag = 'mcdonald\'s'
-let bkTag = 'burger_king'
-let wenTag = 'wendy\'s'
+let burgerTag = 'burger';
+let mcTag = 'mcdonald\'s';
+let bkTag = 'burger_king';
+let wenTag = 'wendy\'s';
 
-let gelAuth = `&api_key=${process.env.GEL_API}&user_id=${process.env.GEL_USER}`
-let gelImages = 'https://img3.gelbooru.com/images/'
-//let tags = 'tags=burger+rating%3asafe+sort%3arandom'
-let safeSearchTag = 'rating%3asafe+sort%3arandom'
+let gelAuth = `&api_key=${process.env.GEL_API}&user_id=${process.env.GEL_USER}`;
+let gelImages = 'https://img3.gelbooru.com/images/';
+//let tags = 'tags=burger+rating%3asafe+sort%3arandom';
+let safeSearchTag = 'rating%3asafe+sort%3arandom';
 
 const fetch = require('node-fetch');
 const Discord = require('discord.js');
 const client = new Discord.Client();
-client.login(process.env.BOTTOKEN)
+client.login(process.env.BOTTOKEN);
 
 client.on('ready', botReady );
 
@@ -35,7 +35,7 @@ async function gotMessage(msg){
         return;
     }
     var content = msg.content;
-    var tag = ''
+    var tag = '';
     switch(true)
     {
         case burgerRE.test(content):
@@ -51,9 +51,10 @@ async function gotMessage(msg){
             tag = wenTag;
             break;
     }
+    console.log(tag)
     if (tag != ''){
         let post = await getImage(tag);
-        msg.channel.send(post)
+        msg.channel.send(post);
         return;
     }
     // if (burgerRE.test(msg.content)){
@@ -67,12 +68,14 @@ async function gotMessage(msg){
 async function getImage(tag = 'burger'){
     let tags = `tags=${tag}+${safeSearchTag}`;
     let url = `https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1&${tags}&limit=1&pid=1${gelAuth}`;
+    //console.log(url)
     let response = await fetch(url);
     if (!response.ok) {
         return ('Unable to grill, come back later.');
     }
     let json = await response.json();
-    let dir = json[0].directory;
-    let img = json[0].image;
-    return (`${gelImages}${dir}/${img}`)
+    //let dir = json.post[0].directory;
+    //let img = json.post[0].image;
+    //return (`${gelImages}${dir}/${img}`);
+    return(json.post[0].file_url)
 }
