@@ -16,10 +16,24 @@ let gelImages = 'https://img3.gelbooru.com/images/';
 //let tags = 'tags=burger+rating%3asafe+sort%3arandom';
 let safeSearchTag = 'rating%3asafe+sort%3arandom';
 
+const guildId = process.env.GUILD_ID;
+const fs = require('node:fs');
 const fetch = require('node-fetch');
-const Discord = require('discord.js');
-const client = new Discord.Client();
+//const Discord = require('discord.js');
+const {Client, Collection, Intents} = require('discord.js');
+const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
+
+client.commands = new Collection();
 client.login(process.env.BOTTOKEN);
+
+const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+
+for (const file of commandFiles) {
+	const command = require(`./commands/${file}`);
+	// Set a new item in the Collection
+	// With the key as the command name and the value as the exported module
+	client.commands.set(command.data.name, command);
+}
 
 client.on('ready', botReady );
 
@@ -79,3 +93,21 @@ async function getImage(tag = 'burger'){
     //return (`${gelImages}${dir}/${img}`);
     return(json.post[0].file_url)
 }
+
+
+
+client.on('interactionCreate', async interaction => {
+    //console.log("Interaction")
+	if (!interaction.isCommand()) return;
+
+	const command = client.commands.get(interaction.commandName);
+
+	if (!command) return;
+    //console.log("command")
+	try {
+		await command.execute(interaction);
+	} catch (error) {
+		console.error(error);
+		await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+	}
+});
