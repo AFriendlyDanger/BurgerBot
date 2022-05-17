@@ -2,6 +2,7 @@ console.log('Starting Bot...');
 
 require('dotenv').config();
 
+
 let burgerRE = /(\s|^)!burg(e|o)r(\s|$)/i
 let mcdonRE = /(\s|^)!(m|w)cdonald('*s|s*)(\s|$)/i
 let bkRE = /(\s|^)!burger_*king(\s|$)/i
@@ -19,6 +20,9 @@ let safeSearchTag = 'rating%3asafe+sort%3arandom';
 const guildId = process.env.GUILD_ID;
 const fs = require('node:fs');
 const fetch = require('node-fetch');
+
+//database connection
+const db = require("./db");
 //const Discord = require('discord.js');
 const {Client, Collection, Intents} = require('discord.js');
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
@@ -35,16 +39,20 @@ for (const file of commandFiles) {
 	client.commands.set(command.data.name, command);
 }
 
+
 client.on('ready', botReady );
 
 function botReady(){
     console.log('Bot Ready');
     client.user.setActivity("!burger", {type: "WATCHING"})
+    //愛 LIKE ハンバーガー 🍔 (Ai LIKE Hamburger 🍔)
+    dbSetup();
 }
 
 client.on('message', gotMessage);
 
 async function gotMessage(msg){
+    console.log('got message')
     if(msg.author.bot){
         return;
     }
@@ -98,6 +106,8 @@ async function getImage(tag = 'burger'){
 
 client.on('interactionCreate', async interaction => {
     //console.log("Interaction")
+    if (interaction.isSelectMenu) menuInteraction(interaction);
+    //if(interaction.isButton) buttonInteraction(interaction);
 	if (!interaction.isCommand()) return;
 
 	const command = client.commands.get(interaction.commandName);
@@ -111,3 +121,38 @@ client.on('interactionCreate', async interaction => {
 		await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
 	}
 });
+
+function menuInteraction(interaction){
+    if(interaction.customId === 'select'){
+        console.log(interaction);
+    }
+}
+
+function buttonInteraction(interaction){
+    console.log(interaction);
+
+
+}
+
+function dbSetup(){
+    try{
+        let sql = 'CREATE TABLE if not exists `schedule` (`guild_id` VARCHAR(255) NOT NULL, ' +
+            '`channel_id` VARCHAR(255) NOT NULL, ' +
+            '`scheduled_time` TIME NOT NULL, ' +
+            '`lastest_post` DATETIME NULL, ' +
+            '`active` TINYINT NOT NULL DEFAULT 0, ' +
+            'PRIMARY KEY (`channel_id`));'
+        sql = 'select * from schedule'
+        db.executeQuery(sql)
+            .then(function(rows){
+                printQuery(null, rows);
+            })
+    }
+    catch (err) {
+        console.log(err);
+    }
+}
+
+function printQuery(err, rows){
+    console.log(rows);
+}
