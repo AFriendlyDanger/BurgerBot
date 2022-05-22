@@ -23,9 +23,15 @@ const fetch = require('node-fetch');
 
 //database connection
 const db = require("./db");
+const scheduler = require("./follow-schedule");
 //const Discord = require('discord.js');
 const {Client, Collection, Intents} = require('discord.js');
-const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
+const client = new Client({ 
+    intents: [
+        Intents.FLAGS.GUILDS,
+        Intents.FLAGS.GUILD_MESSAGES,
+    ] 
+});
 
 client.commands = new Collection();
 client.login(process.env.BOTTOKEN);
@@ -39,20 +45,18 @@ for (const file of commandFiles) {
 	client.commands.set(command.data.name, command);
 }
 
-
 client.on('ready', botReady );
 
 function botReady(){
-    console.log('Bot Ready');
+    //console.log('Bot Ready');
     client.user.setActivity("!burger", {type: "WATCHING"})
     //愛 LIKE ハンバーガー 🍔 (Ai LIKE Hamburger 🍔)
     dbSetup();
 }
 
-client.on('message', gotMessage);
+//client.on('messageCreate', gotMessage);
 
 async function gotMessage(msg){
-    console.log('got message')
     if(msg.author.bot){
         return;
     }
@@ -73,7 +77,6 @@ async function gotMessage(msg){
             tag = wenTag;
             break;
     }
-    console.log(tag)
     if (tag != ''){
         let post = await getImage(tag);
         msg.channel.send(post);
@@ -105,7 +108,8 @@ async function getImage(tag = 'burger'){
 
 
 client.on('interactionCreate', async interaction => {
-    //console.log("Interaction")
+    //console.log(interaction)
+    console.log(interaction);
     if (interaction.isSelectMenu) menuInteraction(interaction);
     //if(interaction.isButton) buttonInteraction(interaction);
 	if (!interaction.isCommand()) return;
@@ -141,8 +145,9 @@ function dbSetup(){
             '`scheduled_time` TIME NOT NULL, ' +
             '`lastest_post` DATETIME NULL, ' +
             '`active` TINYINT NOT NULL DEFAULT 0, ' +
+            '`failed_posts` INT NOT NULL DEFAULT 0, ' +
             'PRIMARY KEY (`channel_id`));'
-        sql = 'select * from schedule'
+        //sql = 'select * from schedule'
         db.executeQuery(sql)
             .then(function(rows){
                 printQuery(null, rows);
@@ -156,3 +161,5 @@ function dbSetup(){
 function printQuery(err, rows){
     console.log(rows);
 }
+
+exports.getClient = function(){return client}

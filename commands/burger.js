@@ -1,5 +1,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 
+
 const lookup = require("../image-lookup");
 
 let gelAuth = `&api_key=${process.env.GEL_API}&user_id=${process.env.GEL_USER}`;
@@ -13,15 +14,15 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('burger')
 		.setDescription('Serves Burger'),
-        /*
-        .addStringOption(option => 
-            option.setName('restaurant')
-            .setDescription('Where do you want to eat?')
-			.setRequired(false)),
-            */
+
 	async execute(interaction) {
-		let post = await lookup.getImage('burger');
+		//let post = await lookup.getImage('burger');
+		lookup.get_embedded_image_msg('burger')
+			.then((msg) => interaction.reply(msg))
+			.catch(err => console.log(err))
 		//interaction.channel.send(post);
-        interaction.reply(post);
+        
 	},
+	
 };
+
