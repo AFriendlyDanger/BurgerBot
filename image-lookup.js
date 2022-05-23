@@ -72,7 +72,7 @@ function build_embed(img_json,tag_json){
         if (tags.character.number > 1) title = 'Characters';
         embed.addField(title,tags.character.string,true);
     }
-    
+    //console.log(he.decode("artoria_pendragon_(fate)"))
 	return embed;
 }
 
@@ -94,17 +94,25 @@ function get_tag_names(tag_json){
     }
     tag_json.tag.forEach(tag =>{
         if(tag.type == ARTIST){
-            tags.artist.string += (tags.artist.number == 0 ? 'Artist:' : ',') + ` ${he.decode(tag.name)}`;
+            tags.artist.string += (tags.artist.number == 0 ? 'Artist:' : ',') + ` ${escapeMarkdown(he.decode(tag.name))}`;
             tags.artist.number += 1;
         }
         else if(tag.type == CHARACTER){
-            tags.character.string += (tags.character.number == 0 ? '' : '\n') + ` ${he.decode(tag.name)}`;
+            console.log(tag.name)
+            tags.character.string += (tags.character.number == 0 ? '' : '\n') + ` ${escapeMarkdown(he.decode(tag.name))}`;
             tags.character.number += 1;
         }
         else if(tag.type == SERIES){
-            tags.series.string += (tags.series.number == 0 ? '' : '\n') + ` ${he.decode(tag.name)}`;
+            tags.series.string += (tags.series.number == 0 ? '' : '\n') + ` ${escapeMarkdown(he.decode(tag.name))}`;
             tags.series.number += 1;
         }
     })
+    
     return tags;
 }
+
+function escapeMarkdown(text) {
+    var unescaped = text.replace(/\\(\*|_|`|~|\\)/g, '$1'); // unescape any "backslashed" character
+    var escaped = unescaped.replace(/(\*|_|`|~|\\)/g, '\\$1'); // escape *, _, `, ~, \
+    return escaped;
+  }
