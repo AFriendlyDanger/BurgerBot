@@ -8,39 +8,6 @@ let dbConfig = parseDbUrl(process.env.DATABASE_URL)
 
 const pool = mysql.createPool(dbConfig);
 
-
-/*
-  con.connect(function(err) {
-    if (err) throw err;
-    console.log("MySQL DB Connected");
-    //var sql = 'show tables'
-    
-  });
-
-module.exports = con;
-*/
-//module.exports = pool;
-/*executeQuery= function(query,callback){
-  pool.getConnection(function(err,connection){
-    if (err) {
-      connection.release();
-      throw err;
-    }   
-    connection.query(query,function(err,rows){
-      connection.release();
-      if(!err) {
-        callback(null, rows);
-      }           
-    });
-      
-    connection.on('error', function(err) { 
-      if (err.code != 'PROTOCOL_CONNECTION_LOST')    
-        console.log(err);
-      return;     
-    });
-  });
-}
-  */
 exports.executeQuery = function(sql, args){
   return new Promise(function(resolve,reject){
     pool.getConnection(function(err,connection){
@@ -59,3 +26,10 @@ exports.executeQuery = function(sql, args){
   })
 }
 
+exports.add_serving = function(guild_id,channel_id){
+  let sql = `INSERT INTO servings (guild_id, channel_id, burgers)` + 
+          ` values ('${guild_id}', '${channel_id}', 0)` + 
+          ` ON DUPLICATE KEY UPDATE burgers = burgers + 1;`;
+  exports.executeQuery(sql)
+      .catch(err => console.log(err));
+}

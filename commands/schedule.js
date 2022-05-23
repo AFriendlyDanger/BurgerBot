@@ -1,6 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageActionRow, MessageButton, MessageSelectMenu, MessageCollector } = require('discord.js');
 const db = require("../db");
+const seconds_active = 90;
 //let collectors = [];
 
 class Schedule {
@@ -47,8 +48,8 @@ module.exports = {
             .then(msg =>{
                 reply(interaction,msg)
                 .then((reply) =>{
-                    const collector = reply.createMessageComponentCollector({ componentType: 'BUTTON', time: 30*1000, errors: ['time'] });
-                    const menu_collector = reply.createMessageComponentCollector({ componentType: 'SELECT_MENU', time: 30*1000, errors: ['time'] });
+                    const collector = reply.createMessageComponentCollector({ componentType: 'BUTTON', time: seconds_active*1000, errors: ['time'] });
+                    const menu_collector = reply.createMessageComponentCollector({ componentType: 'SELECT_MENU', time: seconds_active*1000, errors: ['time'] });
                     collector.on('collect', i => {
                         if (i.user.id === interaction.user.id) {
                             let update = false;
