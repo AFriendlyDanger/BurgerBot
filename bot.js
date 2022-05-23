@@ -49,7 +49,7 @@ client.on('ready', botReady );
 
 function botReady(){
     //console.log('Bot Ready');
-    client.user.setActivity("!burger", {type: "WATCHING"})
+    client.user.setActivity("愛 LIKE ハンバーガー 🍔 (Ai LIKE Hamburger 🍔)", {type: "LISTENING"})
     //愛 LIKE ハンバーガー 🍔 (Ai LIKE Hamburger 🍔)
     dbSetup();
 }
