@@ -4,7 +4,7 @@ const bot = require('./bot');
 const lookup = require("./image-lookup");
 
 const rule = new scheduler.RecurrenceRule();
-rule.hour = 00;
+rule.minute = 00;
 
 scheduler.scheduleJob(rule,function(){
     let date = new Date()
@@ -21,7 +21,7 @@ scheduler.scheduleJob(rule,function(){
                         .then(channel => {
                             lookup.get_embedded_image_msg('burger')
 			                    .then((msg) => channel.send(msg)
-                                .then((res)=> db.add_serving(rows.guild_id,rows.channel_id)))
+                                .then((res)=> db.add_serving(row.guild_id,row.channel_id)))
 			                    .catch(err => {
                                     console.log(err);
                                     post_failed(row);

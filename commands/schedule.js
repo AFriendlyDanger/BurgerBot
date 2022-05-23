@@ -231,7 +231,6 @@ function fill_schedule(err, rows){
     let enabled = 0;
     let time = '00:00:00';
     let changed = false;
-    console.log(rows);
     if(rows.length != 0){
         time = rows[0].scheduled_time;
         enabled = rows[0].active;
