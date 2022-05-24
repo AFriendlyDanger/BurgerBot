@@ -15,8 +15,8 @@ class Schedule {
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('cooking_schedule')
-		.setDescription('Schedule Burger')
-        .addUserOption(option => option.setName('time').setDescription('When to cook burger (UTC)')),
+		.setDescription('Schedule Burger'),
+        //.addUserOption(option => option.setName('time').setDescription('When to cook burger (UTC)')),
 	async execute(interaction) {
 
         if(!has_permission(interaction.member,interaction.channel)){

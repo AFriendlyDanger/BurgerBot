@@ -101,7 +101,7 @@ function get_tag_names(tag_json){
     }
     tag_json.tag.forEach(tag =>{
         if(tag.type == ARTIST){
-            tags.artist.string += (tags.artist.number == 0 ? 'Artist:' : ',') + ` ${escapeMarkdown(he.decode(tag.name))}`;
+            tags.artist.string += (tags.artist.number == 0 ? 'Artist:' : ',') + ` ${he.decode(tag.name)}`;
             tags.artist.number += 1;
         }
         else if(tag.type == CHARACTER){
