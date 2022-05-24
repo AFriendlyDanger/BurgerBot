@@ -1,6 +1,7 @@
 const { MessageEmbed } = require('discord.js');
 //used to decode html character references
 const he = require('he');
+const { format } = require('mysql');
 const gelAuth = `&api_key=${process.env.GEL_API}&user_id=${process.env.GEL_USER}`;
 //let tags = 'tags=burger+rating%3asafe+sort%3arandom';
 const safeSearchTag = '-rating%3aexplicite+-rating%3aquestionable+sort%3arandom';
@@ -8,8 +9,6 @@ const gelPost = 'https://gelbooru.com/index.php?page=post&s=view&id=';
 const ARTIST = 1;
 const SERIES = 3;
 const CHARACTER = 4;
-
-
 
 function get_image_metadata(tag = 'burger'){
     return new Promise((resolve, reject) =>{
@@ -101,15 +100,15 @@ function get_tag_names(tag_json){
     }
     tag_json.tag.forEach(tag =>{
         if(tag.type == ARTIST){
-            tags.artist.string += (tags.artist.number == 0 ? 'Artist:' : ',') + ` ${he.decode(tag.name)}`;
+            tags.artist.string += (tags.artist.number == 0 ? 'Artist:' : ',') + ` ${format_tag(tag.name).replace(/_/g, ' ')}`;
             tags.artist.number += 1;
         }
         else if(tag.type == CHARACTER){
-            tags.character.string += (tags.character.number == 0 ? '' : '\n') + ` ${escapeMarkdown(he.decode(tag.name))}`;
+            tags.character.string += (tags.character.number == 0 ? '' : '\n') + ` ${escapeMarkdown(format_tag(tag.name))}`;
             tags.character.number += 1;
         }
         else if(tag.type == SERIES){
-            tags.series.string += (tags.series.number == 0 ? '' : '\n') + ` ${escapeMarkdown(he.decode(tag.name))}`;
+            tags.series.string += (tags.series.number == 0 ? '' : '\n') + ` ${escapeMarkdown(format_tag(tag.name))}`;
             tags.series.number += 1;
         }
     })
@@ -117,8 +116,16 @@ function get_tag_names(tag_json){
     return tags;
 }
 
+function format_tag(tag){
+    return he.decode(tag)
+    .replace(/_/g, ' ') //replace _ with spaces
+    .replace(/(?:^|\s|\(|\/|-)\w/g, function(a) { return a.toUpperCase(); }) //capitalize every word
+    .replace(/-(?:san|chan|tan|sensei|sama|kun|shi|dono|chama|se(?:m|n)pai)\b/gi, function(b) { return b.toLowerCase(); }); //make honorifics lowercase
+}
+
 function escapeMarkdown(text) {
     var unescaped = text.replace(/\\(\*|_|`|~|\\)/g, '$1'); // unescape any "backslashed" character
     var escaped = unescaped.replace(/(\*|_|`|~|\\)/g, '\\$1'); // escape *, _, `, ~, \
     return escaped;
-  }
+}
+
