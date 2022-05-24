@@ -3,7 +3,7 @@ const { MessageEmbed } = require('discord.js');
 const he = require('he');
 const gelAuth = `&api_key=${process.env.GEL_API}&user_id=${process.env.GEL_USER}`;
 //let tags = 'tags=burger+rating%3asafe+sort%3arandom';
-const safeSearchTag = 'rating%3asafe+sort%3arandom';
+const safeSearchTag = '-rating%3aexplicite+-rating%3aquestionable+sort%3arandom';
 const gelPost = 'https://gelbooru.com/index.php?page=post&s=view&id=';
 const ARTIST = 1;
 const SERIES = 3;
@@ -15,18 +15,25 @@ function get_image_metadata(tag = 'burger'){
     return new Promise((resolve, reject) =>{
         let tags = `tags=${tag}+${safeSearchTag}`;
         let url = `https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1&${tags}&limit=1&pid=1${gelAuth}`;
+        //console.log(url);
         fetch(url)
             .then(res =>{
                 res.json()
                 .then(json =>{
-                    resolve(json);
+                    if(is_rating_safe(json.post[0].rating))resolve(json);
+                    else resolve(get_image_metadata(tag));
                 });
             })
             .catch(err =>{
                 console.log(err);
                 reject(err);
+                return;
             })
     })
+}
+
+function is_rating_safe(rating){
+    return (rating == "sensitive" || rating == "general" || rating == "safe");
 }
 
 function get_tag_metadata(tags) {
