@@ -14,7 +14,6 @@ scheduler.scheduleJob(rule,function(){
     db.executeQuery(sql)
         .then(rows => {
             if(rows.length>0){
-                let orders = [];
                 const client = bot.getClient();
                 rows.forEach(row => {
                     client.channels.fetch(row.channel_id)

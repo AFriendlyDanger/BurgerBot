@@ -10,7 +10,7 @@ const ARTIST = 1;
 const SERIES = 3;
 const CHARACTER = 4;
 
-function get_image_metadata(tag = 'burger'){
+function get_image_metadata(tag = 'burger',attempt = 0){
     return new Promise((resolve, reject) =>{
         let tags = `tags=${tag}+${safeSearchTag}`;
         let url = `https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1&${tags}&limit=1&pid=1${gelAuth}`;
@@ -20,7 +20,8 @@ function get_image_metadata(tag = 'burger'){
                 res.json()
                 .then(json =>{
                     if(is_rating_safe(json.post[0].rating))resolve(json);
-                    else resolve(get_image_metadata(tag));
+                    else if (attempt > 3) reject("Failed to find SFW tagged post")
+                    else resolve(get_image_metadata(tag,++attempt));
                 });
             })
             .catch(err =>{

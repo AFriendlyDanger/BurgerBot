@@ -16,10 +16,17 @@ module.exports = {
 
 	async execute(interaction) {
 		//let post = await lookup.getImage('burger');
+		let message;
 		lookup.get_embedded_image_msg('burger')
-			.then((msg) => interaction.reply(msg)
-			.then(res => db.add_serving(interaction.guildId,interaction.channelId)))
-			.catch(err => console.log(err))
+			.then((msg) => {
+				message = msg;
+				interaction.reply(msg)
+			})
+			.then(res => db.add_serving(interaction.guildId,interaction.channelId))
+			.catch(err => {
+				console.log(err)
+				if(message)console.error(message);
+			})
 		//interaction.channel.send(post);
         
 	},

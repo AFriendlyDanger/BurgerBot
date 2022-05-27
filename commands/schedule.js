@@ -1,6 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageActionRow, MessageButton, MessageSelectMenu, MessageCollector } = require('discord.js');
+const { MessageActionRow, MessageButton, MessageSelectMenu} = require('discord.js');
 const db = require("../db");
+const bot = require('../bot');
 const seconds_active = 90;
 //let collectors = [];
 
@@ -19,31 +20,21 @@ module.exports = {
         //.addUserOption(option => option.setName('time').setDescription('When to cook burger (UTC)')),
 	async execute(interaction) {
 
-        if(!has_permission(interaction.member,interaction.channel)){
-            reply(interaction, {content: "You must be a moderator to set burger schedule.", ephemeral: true})
-            return;
-        }
-
+        
         let schedule;
         let disable_interaction = false;
 
-        //disable active collector in channel or prevent new collector
-        /*
-        for (let i = collectors.length; i > 0; i--){
-            if(collectors[i-1].channelId == interaction.channelId){
-                stop_collector(collectors[i-1]);
+        get_guild_schedule_text(interaction)
+        .then( text =>{
+            if(!has_permission(interaction.member,interaction.channel)){
+                reply(interaction, {content: text + "You must be a moderator to set burger schedule.", ephemeral: true})
+                return;
             }
-        }
-        */
-        //let collector;
-
-        fetch_schedule(interaction)
+        
+            fetch_channel_schedule(interaction)
             .then(s =>{
                 schedule = s;
-                //let message = get_message(interaction, schedule);
-                console.log(s);
-                return get_message(schedule);
-                //return reply(interaction, message);
+                return get_message(s, text);
             })
             .then(msg =>{
                 reply(interaction,msg)
@@ -79,7 +70,7 @@ module.exports = {
                             }
                             console.log(interaction.channel);
                             if(update) {
-                            get_message(schedule, disable_interaction)
+                            get_message(schedule, text, disable_interaction)
                                    .then(m=>{
                                        i.update(m);
                                    })
@@ -93,7 +84,7 @@ module.exports = {
                         if (i.user.id === interaction.user.id) {
                             schedule.time = i.values[0];
                             schedule.changed = true;
-                            get_message(schedule, disable_interaction)
+                            get_message(schedule, text, disable_interaction)
                                    .then(m=>{
                                        i.update(m);
                                    })
@@ -102,34 +93,21 @@ module.exports = {
             
                     collector.on('end', collected => {
                         if(!disable_interaction)interaction.editReply({content: `Command Expired`,components: []});
-                        //remove_collector(collector);
-                        //console.log('end called')
                     });
                 })
+                .catch(err => console.log(err));
             })
+        })
 	},
 };
-/*
-function remove_collector(collector) {
-    let index = collectors.indexOf(collector);
-    if (index > -1) {
-        collectors.splice(index, 1);
-    }
-}
 
-function stop_collector(collector) {
-    remove_collector(collector);
-    collector.stop();
-}
-*/
 
 function has_permission(member,channel){
     return(member.permissionsIn(channel).has('KICK_MEMBERS') || member.permissionsIn(channel).has('ADMINISTRATOR'));
 }
 
-async function get_message(schedule, disable_interaction = false) {
+async function get_message(schedule, text, disable_interaction = false) {
     let message = {};
-    
     const rows = [
         new MessageActionRow()
         .addComponents(get_enabled_button(schedule.active)),
@@ -156,9 +134,8 @@ async function get_message(schedule, disable_interaction = false) {
                 .setStyle('PRIMARY')
                 .setDisabled(!schedule.changed || disable_interaction),
         )]
-    console.log(rows)
-    message = { content: 'Set time', components: [rows[1],rows[0],rows[2]], ephemeral: true, fetchReply: true };
-
+    message = { content: text,components: [rows[1],rows[0],rows[2]], ephemeral: true, fetchReply: true };
+        
     return message;
 }
 
@@ -193,7 +170,7 @@ function get_times(){
     return times;
 }
 
-function fetch_schedule(interaction){
+function fetch_channel_schedule(interaction){
     return new Promise(function(resolve){
         let channel = interaction.channelId;
         let sql = `select * from schedule where channel_id = '${channel}'`;
@@ -236,4 +213,54 @@ function fill_schedule(err, rows){
         enabled = rows[0].active;
     }
     return new Schedule(enabled,time,changed);
+}
+
+
+function get_guild_schedule_text(interaction){
+    return new Promise(function(resolve, reject){
+        let text = '**Schedule:**\n';
+        fetch_guild_schedule(interaction)
+        .then(rows=>{
+            make_guild_schedule_body(rows)
+            .then(body=>{
+                resolve(text + body);
+            })
+        })
+    })
+}
+
+function make_guild_schedule_body(rows){
+    return new Promise(function(resolve){
+        let body = '';
+        if (rows.length == 0){
+            body = 'No burgers have been scheduled';
+            resolve(body);
+        }
+        else{
+            const client = bot.getClient();
+            for(let i = 0; i < rows.length; i++){
+                client.channels.fetch(rows[i].channel_id)
+                    .then(channel => {
+                        let name = channel.name;
+                        let time = rows[i].scheduled_time.substring(0,5);
+                        body += `\`Time: ${time} UTC | Channel: ${name}\`\n`
+                        if(i == rows.length - 1) resolve(body);
+                    })
+                    .catch(err => {
+                        console.error(err);
+                    })
+            }
+        }
+
+    })
+}
+
+function fetch_guild_schedule(interaction){
+    return new Promise(function(resolve, reject){
+        let guild = interaction.guildId;
+        let sql = `select * from schedule where guild_id = '${guild}' and active = 1`;
+        db.executeQuery(sql)
+            .then(rows => resolve(rows))
+            .catch(err => reject(err));
+    });
 }
