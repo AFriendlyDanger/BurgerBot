@@ -17,12 +17,17 @@ function get_image_metadata(tag = 'burger',attempt = 0){
         //console.log(url);
         fetch(url)
             .then(res =>{
-                res.json()
-                .then(json =>{
-                    if(is_rating_safe(json.post[0].rating))resolve(json);
-                    else if (attempt > 3) reject("Failed to find SFW tagged post")
-                    else resolve(get_image_metadata(tag,++attempt));
+                if(res.ok){
+                    res.json()
+                    .then(json =>{
+                        if(is_rating_safe(json.post[0].rating))resolve(json);
+                        else if (attempt > 3) reject("Failed to find SFW tagged post");
+                        else resolve(get_image_metadata(tag,++attempt));
                 });
+                }
+                else if (attempt > 3) reject("Failed to find valid post");
+                else resolve(get_image_metadata(tag,++attempt));
+
             })
             .catch(err =>{
                 console.log(err);
@@ -63,10 +68,13 @@ exports.get_embedded_image_msg = function(tag = 'burger'){
 function build_embed(img_json,tag_json){
     //404 link example: 'https://img3.gelbooru.com/images/a0/aa/a4c450f47d2d4be4d77f6746bb12cc1c981ae937.png'
     const url = img_json.post[0].file_url;
-    const source = img_json.post[0].source;
+    let source = img_json.post[0].source;
     let tags = get_tag_names(tag_json,1);
     let artist = tags.artist.string;
     if (tags.artist.number == 0) artist = source;
+    if (!isValidHttpUrl(source)){
+        source = '';
+    }
 
 	const embed = new MessageEmbed()
 	.setImage(url);
@@ -130,3 +138,14 @@ function escapeMarkdown(text) {
     return escaped;
 }
 
+function isValidHttpUrl(string) {
+    let url;
+    
+    try {
+      url = new URL(string);
+    } catch (_) {
+      return false;  
+    }
+  
+    return url.protocol === "http:" || url.protocol === "https:";
+  }
