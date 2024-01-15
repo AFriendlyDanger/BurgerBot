@@ -51,7 +51,6 @@ function botReady(){
     //console.log('Bot Ready');
     client.user.setActivity("愛 LIKE ハンバーガー 🍔 (Ai LIKE Hamburger 🍔)", {type: "LISTENING"})
     //愛 LIKE ハンバーガー 🍔 (Ai LIKE Hamburger 🍔)
-    dbSetup();
 }
 
 //client.on('messageCreate', gotMessage);
@@ -121,27 +120,5 @@ client.on('interactionCreate', async interaction => {
 		await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
 	}
 });
-
-function dbSetup(){
-
-    let sql = 'CREATE TABLE if not exists `schedule` (`guild_id` VARCHAR(255) NOT NULL, ' +
-        '`channel_id` VARCHAR(255) NOT NULL, ' +
-        '`scheduled_time` TIME NOT NULL, ' +
-        '`active` TINYINT NOT NULL DEFAULT 0, ' +
-        '`failed_posts` INT NOT NULL DEFAULT 0, ' +
-        'PRIMARY KEY (`channel_id`));';
-        //sql = 'select * from schedule'
-    db.executeQuery(sql)
-    .then(rows =>{
-        sql = 'CREATE TABLE if not exists `servings` (' +
-        '`guild_id` VARCHAR(255) NOT NULL, ' +
-        '`channel_id` VARCHAR(255) NOT NULL, ' +
-        '`burgers` INT NOT NULL DEFAULT 0, ' +
-        'PRIMARY KEY (`channel_id`));';
-        db.executeQuery(sql)
-        .catch((err) => {throw err});
-        })
-    .catch((err) => {throw err});        
-}
 
 exports.getClient = function(){return client}

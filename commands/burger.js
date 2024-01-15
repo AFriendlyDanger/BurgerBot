@@ -22,7 +22,11 @@ module.exports = {
 				message = msg;
 				interaction.reply(msg)
 			})
-			.then(res => db.add_serving(interaction.guildId,interaction.channelId))
+			.then(
+				res => {
+					if(db.USING_DB == true)
+						db.executeStoredProcedure(db.StoredProc.sp_Insert_Serving,[interaction.guildId,interaction.channelId])
+				})
 			.catch(err => {
 				console.log(err)
 				if(message)console.error(message);

@@ -4,14 +4,16 @@ const bot = require('./bot');
 const lookup = require("./image-lookup");
 
 const rule = new scheduler.RecurrenceRule();
-rule.minute = 00;
+rule.minute = 0;
 
 scheduler.scheduleJob(rule,function(){
+    if(db.USING_DB == false) return;
     let date = new Date()
     let hour = date.getUTCHours();
     //const sql = 'select * from schedule'
-    const sql = `select * from schedule where scheduled_time = '${hour}:00:00' and active = 1`;
-    db.executeQuery(sql)
+    //const sql = `select * from schedule where scheduled_time = '${hour}:00:00' and active = 1`;
+    const sql_time = `${hour}:00:00`
+    db.executeStoredProcedure(db.StoredProc.sp_Get_Schedule,[sql_time])
         .then(rows => {
             if(rows.length>0){
                 const client = bot.getClient();
@@ -20,7 +22,7 @@ scheduler.scheduleJob(rule,function(){
                         .then(channel => {
                             lookup.get_embedded_image_msg('burger')
 			                    .then((msg) => channel.send(msg)
-                                .then((res)=> db.add_serving(row.guild_id,row.channel_id)))
+                                .then((res)=> db.executeStoredProcedure(db.StoredProc.sp_Insert_Serving,[row.guild_id,row.channel_id])))
 			                    .catch(err => {
                                     console.log(err);
                                     post_failed(row);

@@ -19,7 +19,11 @@ module.exports = {
 		.setDescription('Schedule Burger'),
         //.addUserOption(option => option.setName('time').setDescription('When to cook burger (UTC)')),
 	async execute(interaction) {
-
+        
+        if(db.USING_DB == false){
+            reply(interaction, {content: "No DB in use", ephemeral: true})
+            return;
+        }
         
         let schedule;
         let disable_interaction = false;
@@ -187,11 +191,11 @@ function save(interaction, schedule){
     return new Promise(function(resolve){
         let channel = interaction.channelId;
         let guild = interaction.guildId;
-        let sql = `INSERT INTO schedule (guild_id, channel_id, scheduled_time, active)` + 
-            ` values ('${guild}', '${channel}', '${schedule.time}', ${schedule.active ? 1: 0})` + 
-            ` ON DUPLICATE KEY UPDATE scheduled_time=VALUES(scheduled_time), active=VALUES(active);`
+        //let sql = `INSERT INTO schedule (guild_id, channel_id, scheduled_time, active)` + 
+        //    ` values ('${guild}', '${channel}', '${schedule.time}', ${schedule.active ? 1: 0})` + 
+        //    ` ON DUPLICATE KEY UPDATE scheduled_time=VALUES(scheduled_time), active=VALUES(active);`
 
-        db.executeQuery(sql)
+        db.executeStoredProcedure(db.StoredProc.sp_Insert_Scheduled,[guild,channel,schedule.time,schedule.active? 1: 0])
             .then(rows => {
                 resolve("Saved")
             })
@@ -199,7 +203,7 @@ function save(interaction, schedule){
                 console.error(err)
                 resolve(`Save Unsuccessful [${err.code}]`)
             })
-        console.log(sql)
+        //console.log(sql)
     });
 }
 
