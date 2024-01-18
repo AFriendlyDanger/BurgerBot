@@ -3,7 +3,7 @@ require('dotenv').config();
 const parseDbUrl = require('parse-database-url');
 const { execute } = require('./commands/burger');
 let USING_DB = true;
-exports.USING_DB = USING_DB;
+
 
 let dbConfig = parseDbUrl(process.env.DATABASE_URL)
 
@@ -14,6 +14,8 @@ const pool = mysql.createPool(dbConfig);
 if (dbConfig == null || dbConfig == undefined || process.env.USE_DB != true){
   USING_DB = false;
 }
+
+exports.USING_DB = USING_DB;
 
 const StoredProc = {
   sp_Insert_Serving : "sp_Insert_Serving",
